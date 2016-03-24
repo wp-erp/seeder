@@ -20,14 +20,16 @@ require_once 'vendor/autoload.php';
 class WeDevs_ERP_Seeder {
 
     private $faker;
-    private $count;
+    private $employee_count;
+    private $customer_count;
 
     /**
      * Constructor
      */
     public function __construct() {
 
-        $this->count = 20;
+        $this->employee_count = 20;
+        $this->customer_count = 20;
         $this->faker = Faker\Factory::create();
 
         $this->faker->addProvider( new Faker\Provider\en_US\Person($this->faker ) );
@@ -51,6 +53,7 @@ class WeDevs_ERP_Seeder {
      */
     public function file_includes() {
         include_once __DIR__ . '/includes/class-hr-seeder.php';
+        include_once __DIR__ . '/includes/class-crm-seeder.php';
     }
 
     /**
@@ -67,7 +70,8 @@ class WeDevs_ERP_Seeder {
      */
     function submit_tools_page() {
         if ( isset( $_POST['erp_generate_dummy_data'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'erp-dummy-data-nonce' ) ) {
-            $this->count = isset( $_POST['employee_number'] ) ? intval( $_POST['employee_number'] ) : 20;
+            $this->employee_count = isset( $_POST['employee_number'] ) ? intval( $_POST['employee_number'] ) : 20;
+            $this->customer_count = isset( $_POST['customer_number'] ) ? intval( $_POST['customer_number'] ) : 20;
             $this->generate_data();
         }
     }
@@ -79,10 +83,12 @@ class WeDevs_ERP_Seeder {
      */
     function generate_data() {
 
-        (new WeDevs_ERP_HR_Seeder( $this->faker, $this->count ))->run();
+        (new WeDevs_ERP_HR_Seeder( $this->faker, $this->employee_count ))->run();
+        (new WeDevs_ERP_CRM_Seeder( $this->faker, $this->customer_count ))->run();
 
         echo "<h1>Done!</h1>";
-        printf( '<a href="%s">View Employees</a>', admin_url( 'admin.php?page=erp-hr-employee' ) );
+        printf( '<a href="%s">View Employees</a> OR ', admin_url( 'admin.php?page=erp-hr-employee' ) );
+        printf( '<a href="%s">View Customers</a>', admin_url( 'admin.php?page=erp-sales-customers' ) );
         die();
     }
 }
