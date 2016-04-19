@@ -30,7 +30,7 @@ class WeDevs_ERP_CRM_Seeder {
         global $wpdb;
 
         // truncate the tables
-        $tables = [ 'erp_peoples', 'erp_crm_contact_group' ];
+        $tables = [ 'erp_peoples', 'erp_peoplemeta', 'erp_crm_contact_group', 'erp_crm_contact_subscriber' ];
         foreach ($tables as $table) {
             $wpdb->query( 'TRUNCATE TABLE ' . $wpdb->prefix . $table );
         }
@@ -58,11 +58,14 @@ class WeDevs_ERP_CRM_Seeder {
      */
     function create_contacts() {
 
+        $genders     = ['male', 'female'];
+        $types       = ['contact', 'company'];
+        $life_stages = ['customer', 'lead', 'opportunity'];
+
         for ( $i = 0; $i < $this->count; $i++ ) {
-            $genders = ['male', 'female'];
-            $types   = ['contact', 'company'];
             shuffle( $genders );
             shuffle( $types );
+            shuffle( $life_stages );
 
             $args = array(
                 'first_name'  => $this->faker->firstName( $genders[0] ),
@@ -84,8 +87,11 @@ class WeDevs_ERP_CRM_Seeder {
                 'currency'    => '',
                 'type'        => $types[0],
             );
-            erp_insert_people( $args );
 
+            $contact_id = erp_insert_people( $args );
+
+            erp_people_update_meta( $contact_id, '_assign_crm_agent', get_current_user_id() );
+            erp_people_update_meta( $contact_id, 'life_stage', $life_stages[0] );
         }
     }
 }
