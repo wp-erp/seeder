@@ -90,6 +90,7 @@ class WeDevs_ERP_CRM_Seeder {
 
             $contact_id = erp_insert_people( $args );
 
+            erp_people_update_meta( $contact_id, '_assign_crm_agent', get_current_user_id() );
             erp_people_update_meta( $contact_id, 'life_stage', $life_stages[0] );
         }
     }
