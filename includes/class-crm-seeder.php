@@ -8,6 +8,7 @@ class WeDevs_ERP_CRM_Seeder {
     function __construct( \Faker\Generator $faker, $count ) {
         $this->faker = $faker;
         $this->count = $count;
+        $this->groups = [];
     }
 
     /**
@@ -47,7 +48,10 @@ class WeDevs_ERP_CRM_Seeder {
                 'name'        => $this->faker->company,
                 'description' => $this->faker->sentence,
             ];
-            erp_crm_save_contact_group( $data );
+
+            $group = erp_crm_save_contact_group( $data );
+
+            $this->groups[] = $group->id;
         }
     }
 
@@ -109,6 +113,15 @@ class WeDevs_ERP_CRM_Seeder {
 
             erp_people_update_meta( $contact_id, '_assign_crm_agent', get_current_user_id() );
             erp_people_update_meta( $contact_id, 'life_stage', $life_stages[0] );
+
+            // assing contact to a group that created in create_contacts_group method
+            shuffle( $this->groups );
+            $group = [
+                'user_id' => $contact_id,
+                'group_id' => $this->groups[0],
+            ];
+
+            erp_crm_create_new_contact_subscriber( $group );
         }
     }
 }
