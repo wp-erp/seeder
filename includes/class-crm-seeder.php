@@ -60,7 +60,7 @@ class WeDevs_ERP_CRM_Seeder {
 
         $genders     = ['male', 'female'];
         $types       = ['contact', 'company'];
-        $life_stages = ['customer', 'lead', 'opportunity'];
+        $life_stages = ['customer', 'lead', 'opportunity', 'subscriber'];
 
         for ( $i = 0; $i < $this->count; $i++ ) {
             shuffle( $genders );

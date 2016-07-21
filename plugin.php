@@ -47,6 +47,22 @@ class WeDevs_ERP_Seeder {
     }
 
     /**
+     * Initializes the WeDevs_ERP_Seeder() class
+     *
+     * Checks for an existing WeDevs_ERP_Seeder() instance
+     * and if it doesn't find one, creates it.
+     */
+    public static function init() {
+        static $instance = false;
+
+        if ( ! $instance ) {
+            $instance = new self();
+        }
+
+        return $instance;
+    }
+
+    /**
      * Seeder files
      *
      * @return void
@@ -54,6 +70,10 @@ class WeDevs_ERP_Seeder {
     public function file_includes() {
         include_once __DIR__ . '/includes/class-hr-seeder.php';
         include_once __DIR__ . '/includes/class-crm-seeder.php';
+
+        if ( defined( 'WP_CLI' ) && WP_CLI ) {
+            include_once __DIR__ . '/includes/cli/class-commands.php';
+        }
     }
 
     /**
@@ -70,10 +90,38 @@ class WeDevs_ERP_Seeder {
      */
     function submit_tools_page() {
         if ( isset( $_POST['erp_generate_dummy_data'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'erp-dummy-data-nonce' ) ) {
-            $this->employee_count = isset( $_POST['employee_number'] ) ? intval( $_POST['employee_number'] ) : 20;
-            $this->customer_count = isset( $_POST['customer_number'] ) ? intval( $_POST['customer_number'] ) : 20;
+            $this->employee_count = isset( $_POST['employee_number'] ) ? intval( $_POST['employee_number'] ) : 0;
+            $this->customer_count = isset( $_POST['customer_number'] ) ? intval( $_POST['customer_number'] ) : 0;
             $this->generate_data();
+
+            echo "<h1>Done!</h1>";
+            printf( '<a href="%s">View Employees</a> OR ', admin_url( 'admin.php?page=erp-hr-employee' ) );
+            printf( '<a href="%s">View Customers</a>', admin_url( 'admin.php?page=erp-sales-customers' ) );
+            die();
         }
+    }
+
+    /**
+     * Run the seeder from cli
+     *
+     * @param  string $type
+     * @param  int    $number
+     *
+     * @return void
+     */
+    public function run_seeder_from_cli( $type, $number ) {
+        $this->employee_count = 0;
+        $this->customer_count = 0;
+
+        if ( $type == 'employee' ) {
+            $this->employee_count = $number;
+        }
+
+        if ( $type == 'customer' ) {
+            $this->customer_count = $number;
+        }
+
+        $this->generate_data();
     }
 
     /**
@@ -82,15 +130,18 @@ class WeDevs_ERP_Seeder {
      * @return void
      */
     function generate_data() {
+        if ( $this->employee_count > 0 ) {
+            (new WeDevs_ERP_HR_Seeder( $this->faker, $this->employee_count ))->run();
+        }
 
-        (new WeDevs_ERP_HR_Seeder( $this->faker, $this->employee_count ))->run();
-        (new WeDevs_ERP_CRM_Seeder( $this->faker, $this->customer_count ))->run();
-
-        echo "<h1>Done!</h1>";
-        printf( '<a href="%s">View Employees</a> OR ', admin_url( 'admin.php?page=erp-hr-employee' ) );
-        printf( '<a href="%s">View Customers</a>', admin_url( 'admin.php?page=erp-sales-customers' ) );
-        die();
+        if ( $this->customer_count > 0 ) {
+            (new WeDevs_ERP_CRM_Seeder( $this->faker, $this->customer_count ))->run();
+        }
     }
 }
 
-new WeDevs_ERP_Seeder();
+function erp_seeder() {
+    return WeDevs_ERP_Seeder::init();
+}
+
+erp_seeder();
