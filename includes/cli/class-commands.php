@@ -22,7 +22,7 @@ class WeDevs_ERP_HR_Seeder_Commands extends WP_CLI_Command {
         if ( $name == 'employee' ) {
             $tables = [ 'erp_hr_depts', 'erp_hr_designations', 'erp_hr_employees' ];
         } else {
-            $tables = [ 'erp_peoples', 'erp_peoplemeta', 'erp_crm_contact_group', 'erp_crm_contact_subscriber' ];
+            $tables = [ 'erp_peoples', 'erp_peoplemeta', 'erp_crm_contact_group', 'erp_crm_contact_subscriber', 'erp_people_type_relations' ];
         }
 
         foreach ( $tables as $table ) {
