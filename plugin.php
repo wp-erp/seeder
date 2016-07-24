@@ -117,7 +117,7 @@ class WeDevs_ERP_Seeder {
             $this->employee_count = $number;
         }
 
-        if ( $type == 'customer' ) {
+        if ( in_array( strtolower( $type ), ['customer', 'contact', 'company'] ) ) {
             $this->customer_count = $number;
         }
 

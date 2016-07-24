@@ -1,8 +1,8 @@
 <?php
 /**
- * WeDevs_ERP_HR_Seeder_Commands class
+ * WeDevs_ERP_Seeder_Commands class
  */
-class WeDevs_ERP_HR_Seeder_Commands extends WP_CLI_Command {
+class WeDevs_ERP_Seeder_Commands extends WP_CLI_Command {
 
     /**
      * Truncate the tables
@@ -46,10 +46,10 @@ class WeDevs_ERP_HR_Seeder_Commands extends WP_CLI_Command {
         $type         = strtolower( $name );
         $number       = isset( $assoc_args['num'] ) ? $assoc_args['num'] : 0;
 
-        erp_seeder()->run_seeder_from_cli( $type, $number );
+        erp_seeder()->run_seeder_from_cli( $type, intval( $number ) );
 
         WP_CLI::success( "Tables are successfully seeded!" );
     }
 }
 
-WP_CLI::add_command( 'erp-seeder', 'WeDevs_ERP_HR_Seeder_Commands' );
+WP_CLI::add_command( 'erp-seeder', 'WeDevs_ERP_Seeder_Commands' );
