@@ -64,7 +64,7 @@ class WeDevs_ERP_CRM_Seeder {
 
         $genders     = ['male', 'female'];
         $types       = ['contact', 'company'];
-        $life_stages = ['customer', 'lead', 'opportunity'];
+        $life_stages = ['customer', 'lead', 'opportunity', 'subscriber'];
 
         // get WP ERP provided countries, states and currencies
         $erp_countries  = \WeDevs\ERP\Countries::instance();
