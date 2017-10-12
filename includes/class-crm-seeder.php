@@ -109,12 +109,26 @@ class WeDevs_ERP_CRM_Seeder {
                 'type'        => $types[0],
             );
 
-            $contact_id = erp_insert_people( $args );
+	        $erp_version   = get_option( 'wp_erp_version' );
+	        $contact_owner = get_current_user_id() ? get_current_user_id() : '1';
+	        $contact_hash  = sha1( microtime() . 'erp-unique-hash-id' . $args['email'] );
 
-            erp_people_update_meta( $contact_id, '_assign_crm_agent', get_current_user_id() );
-            erp_people_update_meta( $contact_id, 'life_stage', $life_stages[0] );
+	        if ( version_compare( $erp_version, '1.2.7', '>=' ) ) {
+		        $args['contact_owner'] = $contact_owner;
+		        $args['life_stage']    = $life_stages[0];
+		        $args['hash']          = $contact_hash;
 
-            // assing contact to a group that created in create_contacts_group method
+		        $contact_id = erp_insert_people( $args );
+	        } else {
+		        $contact_id = erp_insert_people( $args );
+		        erp_people_update_meta( $contact_id, '_assign_crm_agent', $contact_owner );
+		        erp_people_update_meta( $contact_id, 'contact_owner', $contact_owner );
+		        erp_people_update_meta( $contact_id, 'life_stage', $life_stages[0] );
+		        erp_people_update_meta( $contact_id, 'hash', $contact_hash );
+	        }
+
+
+	        // assing contact to a group that created in create_contacts_group method
             shuffle( $this->groups );
             $group = [
                 'user_id' => $contact_id,
