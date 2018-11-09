@@ -182,7 +182,8 @@ class WeDevs_ERP_HR_Seeder {
                     'hobbies'         => '',
                     'user_url'        => $this->faker->url,
                     'description'     => $this->faker->realText(),
-                )
+                ),
+                'additional'          => array(),
             );
 
             $employee_id = erp_hr_employee_create( $args );
