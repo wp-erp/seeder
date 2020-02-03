@@ -20,7 +20,7 @@
             </p>
             <p>
                 <label><?php _e( 'Create Leaves Data', 'erp-dummy' ); ?></label>
-                <input type="checkbox" name="create_leaves" value="1" />
+                <input type="checkbox" name="create_leaves" value="1" checked />
             </p>
 
             <?php wp_nonce_field( 'erp-dummy-data-nonce' ); ?>
