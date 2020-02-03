@@ -18,6 +18,10 @@
                 <label><?php _e( 'Number of Customers', 'erp-dummy' ); ?></label>
                 <input type="number" name="customer_number" value="20">
             </p>
+            <p>
+                <label><?php _e( 'Create Leaves Data', 'erp-dummy' ); ?></label>
+                <input type="checkbox" name="create_leaves" value="1" />
+            </p>
 
             <?php wp_nonce_field( 'erp-dummy-data-nonce' ); ?>
             <?php submit_button( __( 'Generate Dummy Content', 'erp-dummy' ), 'primary', 'erp_generate_dummy_data' ); ?>

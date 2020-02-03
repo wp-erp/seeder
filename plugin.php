@@ -22,6 +22,7 @@ class WeDevs_ERP_Seeder {
     private $faker;
     private $employee_count;
     private $customer_count;
+    private $create_leaves;
 
     /**
      * Constructor
@@ -70,8 +71,9 @@ class WeDevs_ERP_Seeder {
     public function file_includes() {
         include_once __DIR__ . '/includes/class-hr-seeder.php';
         include_once __DIR__ . '/includes/class-crm-seeder.php';
+	    include_once __DIR__ . '/includes/class-hr-leaves-seeder.php';
 
-        if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	    if ( defined( 'WP_CLI' ) && WP_CLI ) {
             include_once __DIR__ . '/includes/cli/class-commands.php';
         }
     }
@@ -90,8 +92,9 @@ class WeDevs_ERP_Seeder {
      */
     function submit_tools_page() {
         if ( isset( $_POST['erp_generate_dummy_data'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'erp-dummy-data-nonce' ) ) {
-            $this->employee_count = isset( $_POST['employee_number'] ) ? intval( $_POST['employee_number'] ) : 0;
-            $this->customer_count = isset( $_POST['customer_number'] ) ? intval( $_POST['customer_number'] ) : 0;
+            $this->employee_count   = isset( $_POST['employee_number'] )    ? intval( $_POST['employee_number'] )   : 0;
+            $this->customer_count   = isset( $_POST['customer_number'] )    ? intval( $_POST['customer_number'] )   : 0;
+            $this->create_leaves    = isset( $_POST['create_leaves'] )      ? intval( $_POST['create_leaves'] )     : 0;
             $this->generate_data();
 
             echo "<h1>Done!</h1>";
@@ -136,6 +139,10 @@ class WeDevs_ERP_Seeder {
 
         if ( $this->customer_count > 0 ) {
             (new WeDevs_ERP_CRM_Seeder( $this->faker, $this->customer_count ))->run();
+        }
+
+        if ( $this->create_leaves > 0 ) {
+	        (new WeDevs_ERP_HR_Leaves_Seeder( $this->customer_count ))->run();
         }
     }
 }
