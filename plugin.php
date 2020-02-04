@@ -99,6 +99,7 @@ class WeDevs_ERP_Seeder {
 
             echo "<h1>Done!</h1>";
             printf( '<a href="%s">View Employees</a> OR ', admin_url( 'admin.php?page=erp-hr&section=employee' ) );
+            printf( '<a href="%s">View Leaves</a> OR ', admin_url( 'admin.php?page=erp-hr&section=leave' ) );
             printf( '<a href="%s">View Customers</a>', admin_url( 'admin.php?page=erp-crm&section=contacts' ) );
             die();
         }

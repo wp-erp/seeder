@@ -3,13 +3,14 @@
 /**
  * HR Seeder Class
  */
-class WeDevs_ERP_HR_Leaves_Seeder {
+class WeDevs_ERP_HR_Leaves_Seeder
+{
 
-	protected $policies;
+    protected $policies;
 
-	protected $leave_request_datas;
+    protected $leave_request_datas;
 
-    function __construct( $count ) {
+    function __construct($count) {
         $this->count = $count;
     }
 
@@ -20,8 +21,10 @@ class WeDevs_ERP_HR_Leaves_Seeder {
      */
     public function run() {
         $this->truncate_all();
+        $this->create_holidays();
         $this->policies_datas();
         $this->create_entitlements();
+        $this->create_leave_requests();
     }
 
     /**
@@ -43,26 +46,24 @@ class WeDevs_ERP_HR_Leaves_Seeder {
         ];
 
         foreach ($tables as $table) {
-            $wpdb->query( 'TRUNCATE TABLE ' . $wpdb->prefix . $table );
+            $wpdb->query('TRUNCATE TABLE ' . $wpdb->prefix . $table);
         }
     }
 
-	/**
-	 * Use this method as seeder for leave request
-	 */
-	protected function leave_request_datas() {
-		$this->leave_request_datas = [
+    /**
+     * Use this method as seeder for leave request
+     */
+    protected function leave_request_datas() {
+        $this->leave_request_datas = [];
+    }
 
-		];
-	}
-
-	/**
-	 * Use this method as seeder for leave policy
-	 */
+    /**
+     * Use this method as seeder for leave policy
+     */
     protected function policies_datas() {
         global $wpdb;
-        
-    	$this->policies = [
+
+        $this->policies = [
             [
                 'name'           => 'Annual leave',
                 'value'          => 5,
@@ -161,8 +162,8 @@ class WeDevs_ERP_HR_Leaves_Seeder {
             ]
         ];
 
-        foreach( $this->policies as $policy ) {
-            $wpdb->insert( $wpdb->prefix . 'erp_hr_leave_policies', $policy );
+        foreach ($this->policies as $policy) {
+            $wpdb->insert($wpdb->prefix . 'erp_hr_leave_policies', $policy);
         }
     }
 
@@ -170,10 +171,10 @@ class WeDevs_ERP_HR_Leaves_Seeder {
         global $wpdb;
 
         $current_user = get_current_user_id();
-        $date_minus_1 = strtotime( date('Y-m-d') . ' -1 year' );
+        $date_minus_1 = strtotime(date('Y-m-d') . ' -1 year');
         $prev_year    = date('Y', $date_minus_1);
 
-    	$policies_id = [
+        $policies_id = [
             'annual'    => 1,
             'casual'    => 2,
             'sick'      => 3,
@@ -240,14 +241,14 @@ class WeDevs_ERP_HR_Leaves_Seeder {
             'created_on' => date('Y-m-d h:i:s')
         ];
 
-        $employees = erp_hr_get_employees( [ 'number' => -1 ] );
+        $employees = erp_hr_get_employees(['number' => -1]);
 
-        foreach( $employees as $employee ) {
+        foreach ($employees as $employee) {
             $user_id        = $employee->get_user_id();
             $gender         = $employee->get_gender();
             $marital_status = $employee->get_marital_status();
 
-            if ( $user_id % 2 === 0 ) {
+            if ($user_id % 2 === 0) {
                 $from_date = $prev_year . '-01-01 00:00:00';
                 $to_date   = $prev_year . '-01-01 00:00:00';
             } else {
@@ -255,39 +256,301 @@ class WeDevs_ERP_HR_Leaves_Seeder {
                 $to_date   = date('Y') . '-01-01 00:00:00';
             }
 
-            foreach( $basic as $base ) {
+            foreach ($basic as $base) {
                 $base['user_id']   = $user_id;
                 $base['from_date'] = $from_date;
                 $base['to_date']   = $to_date;
 
-                $wpdb->insert( $wpdb->prefix . 'erp_hr_leave_entitlements', $base );
+                $wpdb->insert($wpdb->prefix . 'erp_hr_leave_entitlements', $base);
             }
 
-            if ( $marital_status === 'single' ) {
+            if ($marital_status === 'single') {
                 $professional['from_date'] = $from_date;
                 $professional['to_date']   = $to_date;
 
-                $wpdb->insert( $wpdb->prefix . 'erp_hr_leave_entitlements', $professional );
+                $wpdb->insert($wpdb->prefix . 'erp_hr_leave_entitlements', $professional);
             }
 
-            if ( $marital_status === 'married' && $gender === 'female' ) {
+            if ($marital_status === 'married' && $gender === 'female') {
                 $business['from_date'] = $from_date;
                 $business['to_date']   = $to_date;
 
-                $wpdb->insert( $wpdb->prefix . 'erp_hr_leave_entitlements', $business );
+                $wpdb->insert($wpdb->prefix . 'erp_hr_leave_entitlements', $business);
             }
 
-            if ( $marital_status === 'married' && $gender === 'male' ) {
+            if ($marital_status === 'married' && $gender === 'male') {
                 $business['from_date'] = $from_date;
                 $business['to_date']   = $to_date;
 
-                $wpdb->insert( $wpdb->prefix . 'erp_hr_leave_entitlements', $enterprise );
+                $wpdb->insert($wpdb->prefix . 'erp_hr_leave_entitlements', $enterprise);
             }
         }
     }
 
+    /**
+     * Create leave requests
+     */
     protected function create_leave_requests() {
-		//get policy id, user id, data from $this->leave_request_datas, then insert into table
+        global $wpdb;
+
+        $entitlements = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}erp_hr_leave_entitlements");
+
+        foreach ($entitlements as $entitlement) {
+            $date_plus_10 = date('Y-m-d', strtotime($entitlement->from_date . ' +10 days'));
+            $date_plus_20 = date('Y-m-d', strtotime($date_plus_10 . ' +20 days'));
+
+            $from_date  = $this->get_random_date($entitlement->from_date, $date_plus_10);
+            $to_date    = $this->get_random_date($date_plus_10, $date_plus_20);
+            $date_count = date_diff(date_create($from_date), date_create($to_date));
+
+            $data = [
+                'user_id'    => $entitlement->user_id,
+                'policy_id'  => $entitlement->policy_id,
+                'days'       => $date_count->format('%a') + 1, // plus 1 for count with the starting date
+                'start_date' => $from_date,
+                'end_date'   => date('Y-m-d 23:59:59', strtotime($to_date)),
+                'comments'   => 'Leave request',
+                'status'     => rand(1, 3),
+                'created_by' => get_current_user_id(),
+                'created_on' => date('Y-m-d H:i:s')
+            ];
+
+            $wpdb->insert($wpdb->prefix . 'erp_hr_leave_requests', $data);
+
+            /**
+             * Breakdown days for details entry
+             */
+            $request_id = $wpdb->insert_id;
+
+            $periods = new DatePeriod(
+                new DateTime($from_date),
+                new DateInterval('P1D'),
+                new DateTime($to_date)
+            );
+
+            $holidays = erp_hr_leave_get_holiday_between_date_range($from_date, $to_date);
+
+            $dates = [];
+
+            foreach ($periods as $period) {
+                $dates[] = $period->format('Y-m-d');
+            }
+
+            $applicable_dates = array_diff( $dates, $holidays );
+
+            foreach ($applicable_dates as $applicable_date) {
+                $wpdb->insert($wpdb->prefix . 'erp_hr_leaves', [
+                    'request_id'    => $request_id,
+                    'date'          => $applicable_date,
+                    'length_hours'  => '8.00',
+                    'length_days'   => '1',
+                    'start_time'    => '00:00:00',
+                    'end_time'      => '23:59:00',
+                    'duration_type' => '1'
+                ]);
+            }
+        }
     }
 
+    /**
+     * Get random data
+     */
+    private function get_random_date($start_date, $end_date)
+    {
+        $min = strtotime($start_date);
+        $max = strtotime($end_date);
+
+        $val = rand($min, $max);
+
+        return date('Y-m-d', $val);
+    }
+
+    /**
+     * Create holidays
+     */
+    protected function create_holidays() {
+        global $wpdb;
+
+        $date_minus_1 = strtotime(date('Y-m-d') . ' -1 year');
+        $prev_year    = date('Y', $date_minus_1);
+        $current_year = date('Y');
+
+        $holidays = [
+            [
+                'title'        => 'Independence Day',
+                'start'        => $prev_year . '-02-01 00:00:00',
+                'end'          => $prev_year . '-02-01 23:59:59',
+                'description'  => 'Independence Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Tax Day',
+                'start'        => $prev_year . '-02-09 00:00:00',
+                'end'          => $prev_year . '-02-09 23:59:59',
+                'description'  => 'Tax Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Thanksgiving Day',
+                'start'        => $prev_year . '-03-12 00:00:00',
+                'end'          => $prev_year . '-03-14 23:59:59',
+                'description'  => 'Thanksgiving Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Election Day',
+                'start'        => $prev_year . '-04-04 00:00:00',
+                'end'          => $prev_year . '-04-04 23:59:59',
+                'description'  => 'Election Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Orthodox Day',
+                'start'        => $prev_year . '-05-05 00:00:00',
+                'end'          => $prev_year . '-05-05 23:59:59',
+                'description'  => 'Orthodox Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Hanukkah Day',
+                'start'        => $prev_year . '-05-22 00:00:00',
+                'end'          => $prev_year . '-05-22 23:59:59',
+                'description'  => 'Hanukkah Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Rosh Hashanah Day',
+                'start'        => $prev_year . '-06-06 00:00:00',
+                'end'          => $prev_year . '-06-06 23:59:59',
+                'description'  => 'Rosh Hashanah Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Lunar Day',
+                'start'        => $prev_year . '-07-07 00:00:00',
+                'end'          => $prev_year . '-07-07 23:59:59',
+                'description'  => 'Lunar Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Yom Kippur',
+                'start'        => $prev_year . '-08-22 00:00:00',
+                'end'          => $prev_year . '-08-22 23:59:59',
+                'description'  => 'Yom Kippur',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Easter',
+                'start'        => $current_year . '-02-02 00:00:00',
+                'end'          => $current_year . '-02-02 23:59:59',
+                'description'  => 'Easter',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Ashura',
+                'start'        => $prev_year . '-09-09 00:00:00',
+                'end'          => $prev_year . '-09-09 23:59:59',
+                'description'  => 'Ashura',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Diwali',
+                'start'        => $prev_year . '-10-13 00:00:00',
+                'end'          => $prev_year . '-10-13 23:59:59',
+                'description'  => 'Diwali',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Holi',
+                'start'        => $current_year . '-02-15 00:00:00',
+                'end'          => $current_year . '-02-15 23:59:59',
+                'description'  => 'Holi',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Ashura',
+                'start'        => $prev_year . '-02-17 00:00:00',
+                'end'          => $prev_year . '-02-17 23:59:59',
+                'description'  => 'Ashura',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Palm Sunday',
+                'start'        => $prev_year . '-04-05 00:00:00',
+                'end'          => $prev_year . '-04-05 23:59:59',
+                'description'  => 'Palm Sunday',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Christmas Eve',
+                'start'        => $prev_year . '-05-23 00:00:00',
+                'end'          => $prev_year . '-05-23 23:59:59',
+                'description'  => 'Christmas Eve',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Palm Sunday',
+                'start'        => $current_year . '-01-03 00:00:00',
+                'end'          => $current_year . '-01-03 23:59:59',
+                'description'  => 'Palm Sunday',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Columbus Day',
+                'start'        => $current_year . '-01-17 00:00:00',
+                'end'          => $current_year . '-01-17 23:59:59',
+                'description'  => 'Columbus Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ],
+            [
+                'title'        => 'Memorial Day',
+                'start'        => $current_year . '-06-06 00:00:00',
+                'end'          => $current_year . '-06-06 23:59:59',
+                'description'  => 'Memorial Day',
+                'range_status' => '',
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ]
+        ];
+
+        foreach ( $holidays as $holiday ) {
+            $wpdb->insert($wpdb->prefix . 'erp_hr_holiday', $holiday);
+        }
+    }
 }
