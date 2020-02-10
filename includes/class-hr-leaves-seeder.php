@@ -306,6 +306,9 @@ class WeDevs_ERP_HR_Leaves_Seeder
             $to_date    = $this->get_random_date($date_plus_10, $date_plus_20);
             $date_count = date_diff(date_create($from_date), date_create($to_date));
 
+            $status = rand(1, 3);
+            $status_pending = 2;
+
             $data = [
                 'user_id'    => $entitlement->user_id,
                 'policy_id'  => $entitlement->policy_id,
@@ -314,10 +317,15 @@ class WeDevs_ERP_HR_Leaves_Seeder
                 'end_date'   => date('Y-m-d 23:59:59', strtotime($to_date)),
                 'comments'   => 'Leave request',
                 'reason'     => 'No reason, just for testing',
-                'status'     => rand(1, 3),
+                'status'     => $status,
                 'created_by' => get_current_user_id(),
                 'created_on' => date('Y-m-d H:i:s')
             ];
+
+            if ( $status !== $status_pending ) {
+                $data['updated_by'] = get_current_user_id();
+                $data['updated_on'] = date('Y-m-d 23:59:58');
+            }
 
             $wpdb->insert($wpdb->prefix . 'erp_hr_leave_requests', $data);
 
