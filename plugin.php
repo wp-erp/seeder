@@ -5,7 +5,7 @@
  * Plugin URI: http://wperp.com
  * Author: Tareq Hasan
  * Author URI: http://tareq.co
- * Version: 1.0
+ * Version: 2.0.0
  * License: GPL2
  */
 

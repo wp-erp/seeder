@@ -265,6 +265,7 @@ class WeDevs_ERP_HR_Leaves_Seeder
             }
 
             if ($marital_status === 'single') {
+                $professional['user_id']   = $user_id;
                 $professional['from_date'] = $from_date;
                 $professional['to_date']   = $to_date;
 
@@ -272,6 +273,7 @@ class WeDevs_ERP_HR_Leaves_Seeder
             }
 
             if ($marital_status === 'married' && $gender === 'female') {
+                $business['user_id']   = $user_id;
                 $business['from_date'] = $from_date;
                 $business['to_date']   = $to_date;
 
@@ -279,8 +281,9 @@ class WeDevs_ERP_HR_Leaves_Seeder
             }
 
             if ($marital_status === 'married' && $gender === 'male') {
-                $business['from_date'] = $from_date;
-                $business['to_date']   = $to_date;
+                $enterprise['user_id']   = $user_id;
+                $enterprise['from_date'] = $from_date;
+                $enterprise['to_date']   = $to_date;
 
                 $wpdb->insert($wpdb->prefix . 'erp_hr_leave_entitlements', $enterprise);
             }
@@ -310,6 +313,7 @@ class WeDevs_ERP_HR_Leaves_Seeder
                 'start_date' => $from_date,
                 'end_date'   => date('Y-m-d 23:59:59', strtotime($to_date)),
                 'comments'   => 'Leave request',
+                'reason'     => 'No reason, just for testing',
                 'status'     => rand(1, 3),
                 'created_by' => get_current_user_id(),
                 'created_on' => date('Y-m-d H:i:s')
